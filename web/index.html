@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-112762675-1"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-
-      gtag('js', new Date());
-
-      gtag('config', 'UA-112762675-1');
-    </script>
-
     <meta charset="UTF-8">
 
     <title>Mittags in Unterföhring</title>
@@ -32,23 +19,31 @@
     <!-- Place this tag in your head or just before your close body tag. -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
 </head>
+<style>
+    .row-top-dist {
+        margin-top: 20px
+    }
+
+    .top-banner {
+        height: 80px;
+        background-color: lightgoldenrodyellow;
+        -webkit-box-shadow: 0px 1px 7px 1px rgba(0,0,0,0.5);
+        -moz-box-shadow: 0px 1px 7px 1px rgba(0,0,0,0.5);
+        box-shadow: 0px 1px 7px 1px rgba(0,0,0,0.5);
+    }
+
+    .more-time-button {
+        margin-top: 2px;
+    }
+</style>
 <script>
   const app = angular.module('myApp', [])
-  app.filter('trustAsResourceUrl', ['$sce', ($sce) => {
-    return (val) => $sce.trustAsResourceUrl(val);
-  }])
 
   app.filter('youtubeIdToTrustedIFrameURL', ['$sce', ($sce) => (id) => {
     console.log(id)
     const url = `https://www.youtube.com/embed/${id}`;
     console.log(url)
     return $sce.trustAsResourceUrl(url);
-  }]);
-
-  app.filter("trustUrl", ['$sce', function($sce) {
-    return function(recordingUrl) {
-      return $sce.trustAsResourceUrl(recordingUrl);
-    };
   }]);
 
   app.config(function($locationProvider) {
@@ -63,7 +58,7 @@
 
     $scope.childInfo = {
       name: "Amelie",
-      image: "https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fwww.buildingfamilies.net%2Fwp-content%2Fuploads%2F2014%2F09%2Fbigstock-Laughing-Baby-1450727.jpg&f=1"
+      image: "http://www.babycouture.in/blog/wp-content/uploads/2016/06/Happy-Children-Picture-7.jpg"
     };
 
     $scope.credits = {
@@ -87,58 +82,168 @@
 
     $scope.tokenGrant = 0;
 
+    $scope.getLogoForService = (service) => {
+      const serviceLogoURLs = {
+        youtube: "https://upload.wikimedia.org/wikipedia/commons/4/4c/YouTube_icon.png",
+        spotify: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Spotify.png/1200px-Spotify.png"
+      };
+
+      const url = serviceLogoURLs[service];
+      console.log(url)
+      if (!!url) {
+        return url
+      }
+      return null;
+    };
+
     $scope.history = [
       {
-        service: "Youtube",
+        service: "youtube",
         status: "Running",
         contentId: "_islbDFQOh0",
-        credits: 10
+        credits: 12
 
       },
       {
-        service: "Youtube",
+        service: "youtube",
         status: "Running",
         contentId: "clZYZfU9STQ",
-        credits: 10
+        credits: 11
 
       }
     ];
-    $scope.getData = () => {
-      const queryparams = $location.search();
-      queryparams.json = true;
 
 
+    $scope.allowMoreTime = (child, minutes) => {
+      $http.post('http://18e777e3.ngrok.io/broker/tokens/', {
+        media_type: 'YT',
+        "duration": minutes
+      }).then((data, status) => {
+        console.log(data)
+      }, (data, status) => {
+        console.log(data)
+        $scope.error = data;
+      });
     };
 
-    $scope.getData();
+    $scope.changeTokenState = (tokenId, isActive) => {
+      $http.patch(`http://18e777e3.ngrok.io/broker/tokens/${tokenId}`, {
+        active: isActive
+      }).then((data, status) => {
+        console.log(data)
+      }, (data, status) => {
+        console.log(data);
+        $scope.error = data;
+      });
+    };
+
+    $scope.heartbeat = () => {
+      $http.get('http://18e777e3.ngrok.io/broker/tokens/?format=json').then((data, status) => {
+        $scope.tokens = data.data;
+        console.log(data)
+      }, (data, status) => {
+        console.log(data)
+        $scope.error = data;
+      });
+
+      console.log(`heartbeat => ${new Date().getTime()}`);
+      setTimeout(() => $scope.heartbeat(), 5000)
+    };
+    $scope.heartbeat();
+
   }]);
 </script>
+
 <body>
 <div ng-app="myApp" ng-controller="MainController">
-    <h2>Parent Control Panel</h2>
 
-    <div style="padding: 30px 30px 0px 30px">
-        <div class="row">
-            <div class="col-4">
-                <div ng-repeat="service in services">
-                    <input type="checkbox" ng-model="service.enabled" ng-true-value="true" ng-false-value="false">{{service.name}}
+    <div class="container-fluid top-banner">
+        <img height="100%" src="https://i.imgur.com/PbVhtij.png" class="rounded-circle"> <span
+            style="font-size: larger">Parent Control Panel</span>
+    </div>
+    <div class="container">
+        <div class="row row-top-dist">
+            <div class="col-2">
+                <div>
+                    <img height="150px" ng-src="{{childInfo.image}}" class="rounded-circle">
                 </div>
             </div>
-            <div class="col-8">
-                <div class="input-group input-group-sm">
-                    <input class="form-control" type="number" ng-model="tokenGrant" min="1" step="any">
-                    <div>
-                        <button type="button" class="btn btn-success" ng-click="sendToken()">{{tokenGrant}} Credits
-                            buchen
-                        </button>
-                    </div>
+            <div class="col-5">
+                <div class="container-fluid" style="font-weight: bolder; margin-bottom: 10px">
+                    {{childInfo.name}} is currently watching
+                </div>
+                <div class="container-fluid">
+                    <iframe height="150px" src="https://www.youtube.com/embed/YDVq_F0P_ck" frameborder="0"
+                            allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+            </div>
+            <div class="col-5">
+                <div style="font-weight: bolder; margin-bottom: 10px">
+                    {{childInfo.name}}'s available minutes: {{credits.credits_available}}
+                </div>
+                <div class="btn-group-vertical">
+                    <button type="button" class="btn btn-sm btn-outline-success btn-block more-time-button"
+                            ng-click="allowMoreTime('Amelie', 1)">
+                        Just 1 more minute!
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-success more-time-button"
+                            ng-click="allowMoreTime('Amelie', 2)">
+                        Just 2 more minutes!
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-success more-time-button"
+                            ng-click="allowMoreTime('Amelie', 5)">
+                        Just 5 more minutes!
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-success more-time-button"
+                            ng-click="allowMoreTime('Amelie', 10)">
+                        Just 10 more minutes!
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-success more-time-button"
+                            ng-click="allowMoreTime('Amelie', 20)">
+                        Just 20 more minutes!
+                    </button>
+
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-12">
-                <table class="table table-sm table-bordered table-hover" style="font-size: small;">
+        <div class="row row-top-dist">
+            <div class="col-12" style="padding-top: 30px">
+                <table class="table table-sm table-bordered table-hover">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th>Token</th>
+                        <th>Duration</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="token in tokens">
+                        <td>
+                            {{token.id}} "Cow"
+                        </td>
+                        <td>
+                            {{token.duration}}
+                        </td>
+                        <td>
+                            <button ng-if="token.is_active" type="button" class="btn btn-danger"
+                                    ng-click="changeTokenState(token.id, false)">Disable
+                            </button>
+                            <button ng-if="!token.is_active" type="button" class="btn btn-success"
+                                    ng-click="changeTokenState(token.id, true)">Reactivate
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row row-top-dist">
+            <div class="col-12" style="padding-top: 30px">
+                <table class="table table-sm table-bordered table-hover">
                     <thead class="thead-dark">
                     <tr>
                         <th>Service</th>
@@ -150,7 +255,7 @@
                     <tbody>
                     <tr ng-repeat="item in history">
                         <td>
-                            <a ng-href="{{item.src}}">{{item.service}}</a>
+                            <img width="100px" ng-src="{{getLogoForService(item.service)}}">
                         </td>
                         <td>
                             {{item.status}}
