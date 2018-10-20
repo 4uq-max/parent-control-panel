@@ -127,6 +127,10 @@
   }]);
 </script>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script
+        src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
 <script type="text/javascript">
   google.charts.load('current', { 'packages': ['corechart'] });
   google.charts.setOnLoadCallback(drawChart);
@@ -135,6 +139,10 @@
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'Art');
     data.addColumn('number', 'Minuten');
+
+    $.get("http://18e777e3.ngrok.io/broker/balance/", function(data) {
+      console.log(data)
+    });
 
     const v = Math.random() * 1000;
     const u = Math.random() * 1000;
