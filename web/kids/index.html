@@ -58,6 +58,12 @@
         margin-top: 10%;
         margin-left: 5%;
     }
+
+    .chart {
+        height: auto !important;
+        margin-top: 10%;
+        margin-left: 5%;
+    }
 </style>
 
 <script>
@@ -119,13 +125,52 @@
     $scope.heartbeat();
   }]);
 </script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+  google.charts.load('current', { 'packages': ['corechart'] });
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Art');
+    data.addColumn('number', 'Minuten');
+
+    const v = Math.random() * 1000;
+    const u = Math.random() * 1000;
+
+    data.addRows([
+      ['Verbraucht', v],
+      ['Übrig', u]
+    ]);
+
+    var options = {
+      legend: {
+        position: "none"
+      },
+      chartArea: { left: 0, top: 0, right: 0, bottom: 0 },
+      colors: ['#d9534f', '#5cb85c'],
+      enableInteractivity: false,
+      pieSliceText: "none",
+      backgroundColor: "transparent"
+    };
+    var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+
+    chart.draw(data, options);
+
+    setTimeout(() => {
+      drawChart()
+    }, 2000)
+
+  }
+</script>
 <body>
 <div ng-app="myApp" ng-controller="MainController" style="height: 100%">
     <div class="container-fluid" style="height: 100% ">
         <div style="height: 70%;" class="row">
             <div class="col-2 navigation-area">
-                <img width="90%" class="rounded-circle status-button"
-                     ng-src="{{activeVideo.imageURL}}">
+                <!--<img width="90%" class="rounded-circle status-button"-->
+                <!--ng-src="{{activeVideo.imageURL}}">-->
+                <div id="chart_div" class="chart"></div>
             </div>
             <div style="background-color: black" class="col-10">
                 <iframe class="yt_player_iframe" height="100%" width="100%"
