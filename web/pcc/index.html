@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
 
-    <title>Mittags in Unterföhring</title>
+    <title>Parent Control Center</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
           integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
@@ -61,9 +61,7 @@
       image: "http://www.babycouture.in/blog/wp-content/uploads/2016/06/Happy-Children-Picture-7.jpg"
     };
 
-    $scope.credits = {
-      credits_available: 10,
-    };
+    $scope.balance = 0;
 
     $scope.services = [
       {
@@ -113,22 +111,30 @@
       }
     ];
 
+    $scope.getBudget = (child, minutes) => {
+      $http.get('http://18e777e3.ngrok.io/broker/balance/').then((data, status) => {
+        console.log('DATA', data);
+        $scope.balance = data.data[0].limits;
+      }, (data, status) => {
+        console.log(data);
+        $scope.error = data;
+      });
+    };
 
     $scope.allowMoreTime = (child, minutes) => {
-      $http.post('http://18e777e3.ngrok.io/broker/tokens/', {
-        media_type: 'YT',
-        "duration": minutes
+      $http.post('http://18e777e3.ngrok.io/broker/budget/', {
+        duration: minutes
       }).then((data, status) => {
         console.log(data)
       }, (data, status) => {
-        console.log(data)
+        console.log(data);
         $scope.error = data;
       });
     };
 
     $scope.changeTokenState = (tokenId, isActive) => {
-      $http.patch(`http://18e777e3.ngrok.io/broker/tokens/${tokenId}`, {
-        active: isActive
+      $http.patch(`http://18e777e3.ngrok.io/broker/tokens/${tokenId}/`, {
+        is_active: isActive
       }).then((data, status) => {
         console.log(data)
       }, (data, status) => {
@@ -149,6 +155,7 @@
       console.log(`heartbeat => ${new Date().getTime()}`);
       setTimeout(() => $scope.heartbeat(), 5000)
     };
+    $scope.getBudget();
     $scope.heartbeat();
 
   }]);
@@ -179,7 +186,7 @@
             </div>
             <div class="col-5">
                 <div style="font-weight: bolder; margin-bottom: 10px">
-                    {{childInfo.name}}'s available minutes: {{credits.credits_available}}
+                    {{childInfo.name}}'s available minutes: {{balance}}
                 </div>
                 <div class="btn-group-vertical">
                     <button type="button" class="btn btn-sm btn-outline-success btn-block more-time-button"

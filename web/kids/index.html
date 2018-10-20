@@ -95,6 +95,7 @@
       },
     ];
 
+    $scope.timeLeftAtPlaybackStart = 0;
     $scope.activeVideo = $scope.videos[0];
     $scope.videoPaused = false;
     $scope.changeVideo = (id) => {
@@ -139,8 +140,8 @@
     const u = Math.random() * 1000;
 
     data.addRows([
-      ['Verbraucht', v],
-      ['Übrig', u]
+      ['Übrig', u],
+      ['Verbraucht', v]
     ]);
 
     var options = {
@@ -148,7 +149,7 @@
         position: "none"
       },
       chartArea: { left: 0, top: 0, right: 0, bottom: 0 },
-      colors: ['#d9534f', '#5cb85c'],
+      colors: ['#5cb85c', '#d9534f'],
       enableInteractivity: false,
       pieSliceText: "none",
       backgroundColor: "transparent"
