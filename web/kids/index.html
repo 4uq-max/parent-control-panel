@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Client App</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+          integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+            integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
+            integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+            crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+</head>
+
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+    }
+
+    .format-button {
+        border: 1px solid #000000;
+        height: 80%;
+        margin-top: 10%;
+    }
+
+    .navigation-area {
+        background-color: #eceeef;
+    }
+
+    .play-button {
+        margin-top: 10%;
+        background-color: #5cb85c;
+        height: 80%;
+        border-radius: 50%;
+    }
+
+    .pause-button {
+        margin-top: 10%;
+        background-color: #d9534f;
+        height: 80%;
+        border-radius: 50%;
+    }
+
+    .status-button {
+        height: auto !important;
+        border: 1px solid #000000;
+        margin-top: 10%;
+        margin-left: 5%;
+    }
+</style>
+
+<script>
+  const app = angular.module('myApp', []);
+  app.filter('youtubeIdToTrustedIFrameURL', ['$sce', ($sce) => (id) => $sce.trustAsResourceUrl(`https://www.youtube.com/embed/${id}?autoplay=0&enablejsapi=1`)]);
+
+  app.controller('MainController', ['$scope', '$http', '$location', ($scope, $http, $location) => {
+    const self = this;
+    $scope.videos = [
+      {
+        id: "WegyKz5FJC8",
+        imageURL: "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/bibi.png"
+      },
+      {
+        id: "Wg04ktp2Ieg",
+        imageURL: "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/benjamin.png"
+      },
+      {
+        id: "aqvqabwx7HU",
+        imageURL: "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/maus.png"
+      },
+      {
+        id: "6cOOTovIyf8",
+        imageURL: "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/socke.png"
+      },
+      {
+        id: "WuOpXzQhDFI",
+        imageURL: "http://printcolorcraft.com/wp-content/uploads/2016/02/Teletubbies.png"
+      },
+    ];
+
+    $scope.activeVideo = $scope.videos[0];
+    $scope.videoPaused = false;
+    $scope.changeVideo = (id) => {
+      $scope.activeVideo = $scope.videos.find(video => video.id === id);
+    };
+
+    $scope.pauseVideo = () => {
+      console.log('pause');
+      $('.yt_player_iframe').each(function() {
+        this.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*')
+        $scope.videoPaused = true;
+      });
+    };
+
+    $scope.resumeVideo = () => {
+      console.log('play');
+      $('.yt_player_iframe').each(function() {
+        $scope.videoPaused = false;
+        this.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+      });
+    };
+
+    $scope.heartbeat = () => {
+      console.log(`heartbeat => ${new Date().getTime()}`);
+
+      setTimeout(() => $scope.heartbeat(), 5000)
+    };
+    $scope.heartbeat();
+  }]);
+</script>
+<body>
+<div ng-app="myApp" ng-controller="MainController" style="height: 100%">
+    <div class="container-fluid" style="height: 100% ">
+        <div style="height: 70%;" class="row">
+            <div class="col-2 navigation-area">
+                <img width="90%" class="rounded-circle status-button"
+                     ng-src="{{activeVideo.imageURL}}">
+            </div>
+            <div style="background-color: black" class="col-10">
+                <iframe class="yt_player_iframe" height="100%" width="100%"
+                        src="{{activeVideo.id | youtubeIdToTrustedIFrameURL}}"
+                        frameborder="0"
+                        allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+        </div>
+        <div style="height: 30%;" class="row navigation-area">
+            <div class="col-2">
+                <div ng-if="videoPaused" class="play-button" ng-click="resumeVideo()"></div>
+                <div ng-if="!videoPaused" class="pause-button" ng-click="pauseVideo()"></div>
+            </div>
+
+            <div ng-repeat="video in videos" class="col-2">
+                <img height="80%" class="rounded-circle format-button"
+                     ng-src="{{video.imageURL}}" ng-click="changeVideo(video.id)">
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>
