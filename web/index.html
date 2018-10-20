@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-112762675-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+
+      gtag('js', new Date());
+
+      gtag('config', 'UA-112762675-1');
+    </script>
+
+    <meta charset="UTF-8">
+
+    <title>Mittags in Unterföhring</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+          integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+            integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
+            integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+            crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+</head>
+<script>
+  const app = angular.module('myApp', [])
+  app.filter('trustAsResourceUrl', ['$sce', ($sce) => {
+    return (val) => $sce.trustAsResourceUrl(val);
+  }])
+
+  app.filter('youtubeIdToTrustedIFrameURL', ['$sce', ($sce) => (id) => {
+    console.log(id)
+    const url = `https://www.youtube.com/embed/${id}`;
+    console.log(url)
+    return $sce.trustAsResourceUrl(url);
+  }]);
+
+  app.filter("trustUrl", ['$sce', function($sce) {
+    return function(recordingUrl) {
+      return $sce.trustAsResourceUrl(recordingUrl);
+    };
+  }]);
+
+  app.config(function($locationProvider) {
+    $locationProvider.html5Mode({
+      enabled: true,
+      requireBase: false
+    });
+  });
+
+  app.controller('MainController', ['$scope', '$http', '$location', ($scope, $http, $location) => {
+    const self = this;
+
+    $scope.childInfo = {
+      name: "Amelie",
+      image: "https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fwww.buildingfamilies.net%2Fwp-content%2Fuploads%2F2014%2F09%2Fbigstock-Laughing-Baby-1450727.jpg&f=1"
+    };
+
+    $scope.credits = {
+      credits_available: 10,
+    };
+
+    $scope.services = [
+      {
+        name: "youtube",
+        enabled: true
+      },
+      {
+        name: "maxdome",
+        enabled: true
+      },
+      {
+        name: "netflix",
+        enabled: true
+      }
+    ];
+
+    $scope.tokenGrant = 0;
+
+    $scope.history = [
+      {
+        service: "Youtube",
+        status: "Running",
+        contentId: "_islbDFQOh0",
+        credits: 10
+
+      },
+      {
+        service: "Youtube",
+        status: "Running",
+        contentId: "clZYZfU9STQ",
+        credits: 10
+
+      }
+    ];
+    $scope.getData = () => {
+      const queryparams = $location.search();
+      queryparams.json = true;
+
+
+    };
+
+    $scope.getData();
+  }]);
+</script>
+<body>
+<div ng-app="myApp" ng-controller="MainController">
+    <h2>Parent Control Panel</h2>
+
+    <div style="padding: 30px 30px 0px 30px">
+        <div class="row">
+            <div class="col-4">
+                <div ng-repeat="service in services">
+                    <input type="checkbox" ng-model="service.enabled" ng-true-value="true" ng-false-value="false">{{service.name}}
+                </div>
+            </div>
+            <div class="col-8">
+                <div class="input-group input-group-sm">
+                    <input class="form-control" type="number" ng-model="tokenGrant" min="1" step="any">
+                    <div>
+                        <button type="button" class="btn btn-success" ng-click="sendToken()">{{tokenGrant}} Credits
+                            buchen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-sm table-bordered table-hover" style="font-size: small;">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>Content</th>
+                        <th>Credits</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="item in history">
+                        <td>
+                            <a ng-href="{{item.src}}">{{item.service}}</a>
+                        </td>
+                        <td>
+                            {{item.status}}
+                        </td>
+                        <td>
+                            <iframe width="300" height="200"
+                                    src="{{item.contentId | youtubeIdToTrustedIFrameURL}}"
+                                    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                        </td>
+                        <td>
+                            {{item.credits}}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
