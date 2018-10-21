@@ -103,11 +103,11 @@
 
 <script>
   const app = angular.module('myApp', []);
-  app.filter('youtubeIdToTrustedIFrameURL', ['$sce', ($sce) => (id) => $sce.trustAsResourceUrl(`https://www.youtube.com/embed/${id}?autoplay=0&enablejsapi=1`)]);
+  app.filter('youtubeIdToTrustedIFrameURL', ['$sce', ($sce) => (id) => $sce.trustAsResourceUrl(`https://www.youtube.com/embed/${id}?autoplay=1&enablejsapi=1`)]);
 
   app.controller('MainController', ['$scope', '$http', '$location', ($scope, $http, $location) => {
 
-    $scope.apiBaseURL = 'http://18.184.151.41:8000/';
+    $scope.apiBaseURL = 'http://18.184.151.41:8000';
 
     $scope.videos = [
       {
@@ -127,14 +127,16 @@
         imageURL: "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/socke.png"
       },
       {
-        id: "WuOpXzQhDFI",
+        id: "QFaGUFHDnIU",
         imageURL: "http://printcolorcraft.com/wp-content/uploads/2016/02/Teletubbies.png"
       },
     ];
 
+    $scope.HEARTBEAT_INTERVAL = 2000;
     $scope.timeLeftAtPlaybackStart = 0;
     $scope.activeVideo = $scope.videos[0];
     $scope.videoPaused = false;
+    $scope.budgetLeft = true;
     $scope.changeVideo = (id) => {
       $scope.activeVideo = $scope.videos.find(video => video.id === id);
     };
@@ -156,10 +158,31 @@
     };
 
     $scope.heartbeat = () => {
-      console.log(`heartbeat => ${new Date().getTime()}`);
+      if ($scope.videoPaused) {
+        console.log('VIDEO PAUSED -> No Heartbeat!');
+        setTimeout(() => {$scope.heartbeat()}, $scope.HEARTBEAT_INTERVAL)
+      }
+      else {
+        console.log('VIDEO RUNNING -> Heartbeat!');
+        $http.get(`${$scope.apiBaseURL}/broker/heartbeat/`).then((data, status) => {
+          console.log('BALANCE', data);
+          $scope.balance = data.data.limits;
+          $scope.budgetLeft = $scope.balance > 0;
+          console.log($scope.budgetLeft);
 
-      setTimeout(() => $scope.heartbeat(), 5000)
+          if (!$scope.budgetLeft) {
+            $scope.pauseVideo()
+          }
+
+          setTimeout(() => {$scope.heartbeat()}, $scope.HEARTBEAT_INTERVAL)
+        }, (data, status) => {
+          console.log(data);
+          $scope.error = data;
+          setTimeout(() => {$scope.heartbeat()}, $scope.HEARTBEAT_INTERVAL)
+        });
+      }
     };
+
     $scope.heartbeat();
   }]);
 </script>
@@ -171,45 +194,47 @@
 <script type="text/javascript">
   google.charts.load('current', { 'packages': ['gauge'] });
 
+  const MIN_TO_SECS = 60;
   const drawChart = () => {
-    let value = 95;
-    const data = google.visualization.arrayToDataTable([
+    const HEARTBEAT_INTERVAL = 2000;
+    let value = 0;
+    const chartData = google.visualization.arrayToDataTable([
       ['Label', 'Value'],
       ['', value]
     ]);
 
     const options = {
       redFrom: 0, redTo: 5,
-      yellowFrom: 6, yellowTo: 15,
-      greenFrom: 16, greenTo: 100,
+      yellowFrom: 6 , yellowTo: 15 ,
+      greenFrom: 16 , greenTo: 120 ,
       minorTicks: 5
     };
 
     const chart = new google.visualization.Gauge(document.getElementById('chart_div'));
-    chart.draw(data, options);
+    chart.draw(chartData, options);
 
     setInterval(() => {
-      let message = $("#hidden").attr('class').split(" ")[0];
-      if (message === "running") {
-        value--;
-      }
-      data.setValue(0, 1, value);
-      chart.draw(data, options);
-    }, 1000);
+      $.getJSON("http://18.184.151.41:8000/broker/balance/", (data) => {
+        const budget = data[0].limits;
+        console.log(data[0].limits);
+
+        chartData.setValue(0, 1, Math.round(budget / MIN_TO_SECS));
+        chart.draw(chartData, options);
+      });
+    }, HEARTBEAT_INTERVAL);
   };
 
   google.charts.setOnLoadCallback(drawChart);
 </script>
 <body>
 <div ng-app="myApp" ng-controller="MainController" style="height: 100%">
-    <span ng-if="videoPaused" id="hidden" class="paused"></span>
-    <span ng-if="!videoPaused" id="hidden" class="running"></span>
     <div class="container-fluid" style="height: 100% ">
         <div style="height: 70%;" class="row">
             <div class="col-2 control-navigation-area">
                 <!--<img width="90%" class="rounded-circle status-button"-->
                 <!--ng-src="{{activeVideo.imageURL}}">-->
                 <div id="chart_div" class="chart"></div>
+                <div style="font-size: xx-small">{{videoPaused ? "Video paused": "Video running"}}: {{balance}}s left!</div>
             </div>
             <div style="background-color: black" class="col-10">
                 <iframe class="yt_player_iframe" height="100%" width="100%"

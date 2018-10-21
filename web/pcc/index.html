@@ -96,6 +96,14 @@
       return null;
     };
 
+    $scope.coinImages = {
+      "CK": "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/coins/CuteCoins_chicken.png",
+      "CT": "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/coins/CuteCoins_cat.png",
+      "DG": "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/coins/CuteCoins_dog.png",
+      "HS": "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/coins/CuteCoins_horse.png",
+      "EL": "https://s3.eu-central-1.amazonaws.com/7hack/2018/kids-app/img/coins/CuteCoins_elefant.png",
+    }
+
     $scope.history = [
       {
         service: "youtube",
@@ -127,6 +135,7 @@
       $http.post(`${$scope.apiBaseURL}/broker/budget/`, {
         duration: minutes
       }).then((data, status) => {
+        $scope.balance = data.data.limits
         console.log(data)
       }, (data, status) => {
         console.log(data);
@@ -188,32 +197,46 @@
             </div>
             <div class="col-5">
                 <div style="font-weight: bolder; margin-bottom: 10px">
-                    {{childInfo.name}}'s available minutes: {{balance}}
+                    {{childInfo.name}}'s available minutes: {{balance / 60 | number:0}}
                 </div>
                 <div class="btn-group-vertical">
-                    <button type="button" class="btn btn-sm btn-outline-success btn-block more-time-button"
-                            ng-click="allowMoreTime('Amelie', 1)">
-                        Just 1 more minute!
+                    <button type="button" class="btn btn-sm btn-outline-danger more-time-button"
+                            ng-click="allowMoreTime('Amelie', -100000000)">
+                        Remove all credits!
+                    </button>
+
+
+                    <button type="button" class="btn btn-sm btn-outline-danger more-time-button"
+                            ng-click="allowMoreTime('Amelie', -20 * 60)">
+                        Remove 20 minutes!
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger more-time-button"
+                            ng-click="allowMoreTime('Amelie', -5 * 60)">
+                        Remove 5 minutes!
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-danger more-time-button"
+                            ng-click="allowMoreTime('Amelie', -1 * 60)">
+                        Remove 1 minute!
                     </button>
 
                     <button type="button" class="btn btn-sm btn-outline-success more-time-button"
-                            ng-click="allowMoreTime('Amelie', 2)">
-                        Just 2 more minutes!
+                            ng-click="allowMoreTime('Amelie', 1 * 60)">
+                        Just 1 more minutes!
                     </button>
 
                     <button type="button" class="btn btn-sm btn-outline-success more-time-button"
-                            ng-click="allowMoreTime('Amelie', 5)">
+                            ng-click="allowMoreTime('Amelie', 5 * 60)">
                         Just 5 more minutes!
                     </button>
 
                     <button type="button" class="btn btn-sm btn-outline-success more-time-button"
-                            ng-click="allowMoreTime('Amelie', 10)">
-                        Just 10 more minutes!
-                    </button>
-
-                    <button type="button" class="btn btn-sm btn-outline-success more-time-button"
-                            ng-click="allowMoreTime('Amelie', 20)">
+                            ng-click="allowMoreTime('Amelie', 20 * 60)">
                         Just 20 more minutes!
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success more-time-button"
+                            ng-click="allowMoreTime('Amelie', 100000000)">
+                        A Lot of Budget!
                     </button>
 
                 </div>
@@ -230,12 +253,12 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="token in tokens">
+                    <tr ng-repeat="token in tokens | orderBy:'-is_active'">
                         <td>
-                            {{token.id}} "Cow"
+                            <img height="50px" ng-src="{{coinImages[token.token_type]}}" class="rounded-circle">
                         </td>
                         <td>
-                            {{token.duration}}
+                            {{token.duration / 60}}
                         </td>
                         <td>
                             <button ng-if="token.is_active" type="button" class="btn btn-danger"
@@ -244,38 +267,6 @@
                             <button ng-if="!token.is_active" type="button" class="btn btn-success"
                                     ng-click="changeTokenState(token.id, true)">Reactivate
                             </button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="row row-top-dist">
-            <div class="col-12" style="padding-top: 30px">
-                <table class="table table-sm table-bordered table-hover">
-                    <thead class="thead-dark">
-                    <tr>
-                        <th>Service</th>
-                        <th>Status</th>
-                        <th>Content</th>
-                        <th>Credits</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="item in history">
-                        <td>
-                            <img width="100px" ng-src="{{getLogoForService(item.service)}}">
-                        </td>
-                        <td>
-                            {{item.status}}
-                        </td>
-                        <td>
-                            <iframe width="300" height="200"
-                                    src="{{item.contentId | youtubeIdToTrustedIFrameURL}}"
-                                    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                        </td>
-                        <td>
-                            {{item.credits}}
                         </td>
                     </tr>
                     </tbody>
