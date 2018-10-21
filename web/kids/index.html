@@ -32,24 +32,50 @@
         border: 1px solid #000000;
         height: 80%;
         margin-top: 10%;
+        background: white;
+    }
+
+    .format-button:hover {
+        background-color: #5cb85cb5;
     }
 
     .navigation-area {
         background-color: #eceeef;
     }
 
+    .control-navigation-area {
+        background-color: lightgrey;
+        border-right: 1px solid #000000;
+    }
+
+    .format-navigation-area {
+        background-color: lightgrey;
+        border-top: 1px solid #000000;
+    }
+
+    .control-button {
+        box-shadow: 0px 0px 22px 1px rgba(0,0,0,0.75);
+        height: 80%;
+        border-radius: 50%;
+        margin-top: 10%;
+    }
+
     .play-button {
         margin-top: 10%;
         background-color: #5cb85c;
-        height: 80%;
-        border-radius: 50%;
+    }
+
+    .play-button:hover {
+        margin-top: 10%;
+        background-color: #4f9d4f;
     }
 
     .pause-button {
-        margin-top: 10%;
         background-color: #d9534f;
-        height: 80%;
-        border-radius: 50%;
+    }
+
+    .pause-button:hover {
+        background-color: #bf4743;
     }
 
     .status-button {
@@ -64,6 +90,15 @@
         margin-top: 10%;
         margin-left: 5%;
     }
+
+    .control-button-icon {
+        vertical-align: center;
+        width: 50%;
+        height: 50%;
+        margin-top: 25%;
+        margin-left: 25%;
+
+    }
 </style>
 
 <script>
@@ -71,7 +106,9 @@
   app.filter('youtubeIdToTrustedIFrameURL', ['$sce', ($sce) => (id) => $sce.trustAsResourceUrl(`https://www.youtube.com/embed/${id}?autoplay=0&enablejsapi=1`)]);
 
   app.controller('MainController', ['$scope', '$http', '$location', ($scope, $http, $location) => {
-    const self = this;
+
+    $scope.apiBaseURL = 'http://18.184.151.41:8000/';
+
     $scope.videos = [
       {
         id: "WegyKz5FJC8",
@@ -160,6 +197,7 @@
       colors: ['#5cb85c', '#d9534f'],
       enableInteractivity: false,
       pieSliceText: "none",
+      pieSliceBorderColor: "transparent",
       backgroundColor: "transparent"
     };
     var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
@@ -176,7 +214,7 @@
 <div ng-app="myApp" ng-controller="MainController" style="height: 100%">
     <div class="container-fluid" style="height: 100% ">
         <div style="height: 70%;" class="row">
-            <div class="col-2 navigation-area">
+            <div class="col-2 control-navigation-area">
                 <!--<img width="90%" class="rounded-circle status-button"-->
                 <!--ng-src="{{activeVideo.imageURL}}">-->
                 <div id="chart_div" class="chart"></div>
@@ -188,13 +226,17 @@
                         allow="autoplay; encrypted-media" allowfullscreen></iframe>
             </div>
         </div>
-        <div style="height: 30%;" class="row navigation-area">
-            <div class="col-2">
-                <div ng-if="videoPaused" class="play-button" ng-click="resumeVideo()"></div>
-                <div ng-if="!videoPaused" class="pause-button" ng-click="pauseVideo()"></div>
+        <div style="height: 30%;" class="row">
+            <div class="col-2 control-navigation-area">
+                <div ng-if="videoPaused" class="control-button play-button" ng-click="resumeVideo()">
+                    <img height="80%" class="control-button-icon" src="http://image.flaticon.com/icons/png/512/31/31128.png">
+                </div>
+                <div ng-if="!videoPaused" class="control-button pause-button" ng-click="pauseVideo()">
+                    <img height="80%" class="control-button-icon" src="http://freevector.co/wp-content/uploads/2010/01/79746-big-pause-symbol.png">
+                </div>
             </div>
 
-            <div ng-repeat="video in videos" class="col-2">
+            <div ng-repeat="video in videos" class="col-2  navigation-area format-navigation-area">
                 <img height="80%" class="rounded-circle format-button"
                      ng-src="{{video.imageURL}}" ng-click="changeVideo(video.id)">
             </div>

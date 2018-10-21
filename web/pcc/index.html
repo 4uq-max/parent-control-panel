@@ -56,6 +56,8 @@
   app.controller('MainController', ['$scope', '$http', '$location', ($scope, $http, $location) => {
     const self = this;
 
+    $scope.apiBaseURL = 'http://18.184.151.41:8000';
+
     $scope.childInfo = {
       name: "Amelie",
       image: "http://www.babycouture.in/blog/wp-content/uploads/2016/06/Happy-Children-Picture-7.jpg"
@@ -112,8 +114,8 @@
     ];
 
     $scope.getBudget = (child, minutes) => {
-      $http.get('http://18e777e3.ngrok.io/broker/balance/').then((data, status) => {
-        console.log('DATA', data);
+      $http.get(`${$scope.apiBaseURL}/broker/balance/`).then((data, status) => {
+        console.log('BALANCE', data);
         $scope.balance = data.data[0].limits;
       }, (data, status) => {
         console.log(data);
@@ -122,7 +124,7 @@
     };
 
     $scope.allowMoreTime = (child, minutes) => {
-      $http.post('http://18e777e3.ngrok.io/broker/budget/', {
+      $http.post(`${$scope.apiBaseURL}/broker/budget/`, {
         duration: minutes
       }).then((data, status) => {
         console.log(data)
@@ -133,7 +135,7 @@
     };
 
     $scope.changeTokenState = (tokenId, isActive) => {
-      $http.patch(`http://18e777e3.ngrok.io/broker/tokens/${tokenId}/`, {
+      $http.patch(`${$scope.apiBaseURL}/broker/tokens/${tokenId}/`, {
         is_active: isActive
       }).then((data, status) => {
         console.log(data)
@@ -144,7 +146,7 @@
     };
 
     $scope.heartbeat = () => {
-      $http.get('http://18e777e3.ngrok.io/broker/tokens/?format=json').then((data, status) => {
+      $http.get(`${$scope.apiBaseURL}/broker/tokens/?format=json`).then((data, status) => {
         $scope.tokens = data.data;
         console.log(data)
       }, (data, status) => {
