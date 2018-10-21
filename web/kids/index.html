@@ -54,7 +54,7 @@
     }
 
     .control-button {
-        box-shadow: 0px 0px 22px 1px rgba(0,0,0,0.75);
+        box-shadow: 0px 0px 22px 1px rgba(0, 0, 0, 0.75);
         height: 80%;
         border-radius: 50%;
         margin-top: 10%;
@@ -169,49 +169,41 @@
         integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous"></script>
 <script type="text/javascript">
-  google.charts.load('current', { 'packages': ['corechart'] });
-  google.charts.setOnLoadCallback(drawChart);
+  google.charts.load('current', { 'packages': ['gauge'] });
 
-  function drawChart() {
-    var data = new google.visualization.DataTable();
-    data.addColumn('string', 'Art');
-    data.addColumn('number', 'Minuten');
-
-    $.get("http://18e777e3.ngrok.io/broker/balance/", function(data) {
-      console.log(data)
-    });
-
-    const v = Math.random() * 1000;
-    const u = Math.random() * 1000;
-
-    data.addRows([
-      ['Übrig', u],
-      ['Verbraucht', v]
+  const drawChart = () => {
+    let value = 95;
+    const data = google.visualization.arrayToDataTable([
+      ['Label', 'Value'],
+      ['', value]
     ]);
 
-    var options = {
-      legend: {
-        position: "none"
-      },
-      chartArea: { left: 0, top: 0, right: 0, bottom: 0 },
-      colors: ['#5cb85c', '#d9534f'],
-      enableInteractivity: false,
-      pieSliceText: "none",
-      pieSliceBorderColor: "transparent",
-      backgroundColor: "transparent"
+    const options = {
+      redFrom: 0, redTo: 5,
+      yellowFrom: 6, yellowTo: 15,
+      greenFrom: 16, greenTo: 100,
+      minorTicks: 5
     };
-    var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
 
+    const chart = new google.visualization.Gauge(document.getElementById('chart_div'));
     chart.draw(data, options);
 
-    setTimeout(() => {
-      drawChart()
-    }, 2000)
+    setInterval(() => {
+      let message = $("#hidden").attr('class').split(" ")[0];
+      if (message === "running") {
+        value--;
+      }
+      data.setValue(0, 1, value);
+      chart.draw(data, options);
+    }, 1000);
+  };
 
-  }
+  google.charts.setOnLoadCallback(drawChart);
 </script>
 <body>
 <div ng-app="myApp" ng-controller="MainController" style="height: 100%">
+    <span ng-if="videoPaused" id="hidden" class="paused"></span>
+    <span ng-if="!videoPaused" id="hidden" class="running"></span>
     <div class="container-fluid" style="height: 100% ">
         <div style="height: 70%;" class="row">
             <div class="col-2 control-navigation-area">
@@ -229,10 +221,12 @@
         <div style="height: 30%;" class="row">
             <div class="col-2 control-navigation-area">
                 <div ng-if="videoPaused" class="control-button play-button" ng-click="resumeVideo()">
-                    <img height="80%" class="control-button-icon" src="http://image.flaticon.com/icons/png/512/31/31128.png">
+                    <img height="80%" class="control-button-icon"
+                         src="http://image.flaticon.com/icons/png/512/31/31128.png">
                 </div>
                 <div ng-if="!videoPaused" class="control-button pause-button" ng-click="pauseVideo()">
-                    <img height="80%" class="control-button-icon" src="http://freevector.co/wp-content/uploads/2010/01/79746-big-pause-symbol.png">
+                    <img height="80%" class="control-button-icon"
+                         src="http://freevector.co/wp-content/uploads/2010/01/79746-big-pause-symbol.png">
                 </div>
             </div>
 
